@@ -22,7 +22,7 @@ remote web url:    &lt;textarea style="width:100%;height:1rem">${location.href}&
           //You can send p.innerHTML by POST.
           document.querySelector('#r').innerHTML += `
 local file path:   &lt;textarea style="width:100%;height:1rem">${ p.className }&lt;/textarea>&lt;br/>
-local file content:&lt;textarea style="width:100%;height:6rem">${ p.innerHTML }&lt;/textarea>&lt;br/>&lt;br/>`;
+local file content:&lt;textarea style="width:100%;height:60rem">${ p.innerHTML }&lt;/textarea>&lt;br/>&lt;br/>`;
         });
       </script>
     </body>
